@@ -1,9 +1,9 @@
 ---
 name: wiki-ingest
-description: Process source files from the raw/ folder into synthesised wiki pages. Run after dropping articles, PDFs, notes, or data files into raw/, or when you say /wiki-ingest. Treats raw/ as a flat queue; scans all files, extracts and synthesises knowledge, creates or updates wiki pages with wikilink backlinks, then moves each source file to the appropriate ingested/ subfolder as an atomic commit; the move is the record of completion. Unreadable files move to ingested/assets/. Updates index.md and logs the operation. Blacklist applies to wiki page creation only, not file moves. Requires filesystem read/write/move access.
+description: Process source files from the raw/ folder into synthesised wiki pages. Run after dropping articles, PDFs, notes, or data files into raw/, or when you say /wiki-ingest. Treats raw/ as a queue scanned recursively, including type-subfolders; scans all files, extracts and synthesises knowledge, creates or updates wiki pages with wikilink backlinks, then moves each source file to the appropriate ingested/ subfolder as an atomic commit; the move is the record of completion. Unreadable files move to ingested/assets/. Updates index.md and logs the operation. Blacklist applies to wiki page creation only, not file moves. Requires filesystem read/write/move access.
 ---
 
-<!-- version: 3.7 -->
+<!-- version: 3.8 -->
 
 # Wiki Ingest
 
@@ -123,9 +123,11 @@ This skill requires **filesystem read, write, move, and search access**. If runn
 
 ### Step 1 - Scan raw/ for all files
 
-List all files directly in `<wiki_root>/raw/` (flat; raw/ has no subdirs in this architecture). If raw/ is empty, report "No files in raw/ to process." and stop; do not append to log.md for a no-op run.
+List all files in `<wiki_root>/raw/`, recursing into its subfolders (e.g. `raw/articles/`, `raw/notes/`, `raw/papers/`). Files placed directly in `raw/` and files inside type-subfolders are all part of the queue. When a file sits in a subfolder whose name matches an `ingested_subdir` (articles, papers, books, clippings, notes, data, assets), use that subfolder name as the classification hint in step 2b; subject-over-location still applies, so override only when the content clearly belongs elsewhere. If raw/ is empty, report "No files in raw/ to process." and stop; do not append to log.md for a no-op run.
 
 Every file found will be processed. There is no pre-filter based on log history; the filesystem is the truth. Files already ingested in a previous run will simply be re-ingested; the synthesis step will surface whether the content is unchanged, updated, or contradictory.
+
+**Exception - Hermes locate files (`hermes-locate-*.md`):** these are Stage-B pipeline inputs that deliberately stay in `raw/articles/` for lineage. Only process one if its frontmatter contains an `analyzed:` key (Stage B stamps it after a successful analysis run). A locate file without `analyzed:` is pending analysis: skip it entirely - do not ingest it and do not move it out of raw/. (Added 2026-08-18.)
 
 ### Step 2 - Process each file
 
