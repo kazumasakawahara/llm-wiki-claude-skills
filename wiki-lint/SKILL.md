@@ -3,7 +3,7 @@ name: wiki-lint
 description: Health-check the wiki. Scans all pages for broken wikilinks, orphaned pages, stale index entries, missing connections between related pages, em-dash violations in page titles and filenames, orphaned binary assets, and orphaned sources in ingested/. Produces a dated lint report in archive/. Use when you say /wiki-lint or periodically to maintain knowledge graph health. Never auto-fixes anything; report only. Requires filesystem read access and write access to archive/.
 ---
 
-<!-- version: 2.9 -->
+<!-- version: 2.10 -->
 
 # Wiki Lint
 
@@ -109,6 +109,8 @@ Read `index.md`. Parse all wikilink references and file paths. Build a set of pa
 
 For each in-scope wiki page, extract all `[[wikilinks]]`. Attempt to resolve each to an actual file. If no matching file is found: flag as a **broken wikilink** with the page where found, the broken link text, and a suggested correction if obvious.
 
+Skip wikilinks that appear inside inline code (backticks) or fenced code blocks: those are notation being *described* (e.g. "wrap the keyword in `[[ ]]`", or `[[Example Page]]` shown as a template), not links the app will resolve. Counting them as broken produces permanent false positives (observed 2026-09-22: 6 of 15 flagged links were of this kind).
+
 Also flag: any wiki page containing a link that points into `raw/`. Once wiki-ingest moves files to `ingested/`, raw/ source links will break. Flag these as **future breakage warnings**: "[[Page]] links to raw/<filename>: will break after ingestion. Update to ingested/<subdir>/<filename> once ingest is complete." These are not yet broken but are guaranteed to become so.
 
 ### Step 4 - Check for orphan pages
@@ -153,6 +155,15 @@ For each file in `ingested/` (all subdirs, including assets/):
 
 A source in `ingested/assets/` with no reference is expected (it was unreadable at ingest time); flag it at lower severity as a **note** rather than a warning, so the user knows it exists and can re-attempt ingestion if capabilities have improved.
 
+### Step 7b - Check frontmatter `sources:` entries
+
+The `sources:` frontmatter field may hold two kinds of entry, one per list item:
+
+- **Vault paths:** an entry that starts with `ingested/` or `raw/`. Only these are checked: the file must exist relative to wiki root. If it does not, flag as a **missing source path**. An entry starting with `raw/` that now exists under `ingested/` is the same breakage described in Step 3; report it there with the post-ingest destination.
+- **External citations:** any other entry (a URL, a statute or circular name, a NotebookLM notebook, a work session, typically "issuer, document title (retrieval date) URL"). These are references, not files. Do not check them for existence and do not flag them.
+
+A page with no `sources:` field is not flagged by this step unless the vault's own CLAUDE.md requires one; follow the vault's rule. (Added 2026-10-07: 12 pages listed external citations in `sources:`; checking every entry as a path would have reported all 35 citations as missing files.)
+
 ### Step 8 - Write the lint report
 
 Create `[wiki-root]/archive/lint-YYYY-MM-DD.md`:
@@ -174,6 +185,7 @@ date: YYYY-MM-DD
 - Em-dash violations (titles/filenames): N
 - Orphaned binary assets: N
 - Orphaned sources in ingested/: N (+ N notes in assets/)
+- Missing source paths (frontmatter sources:): N
 - Conceptual flags: N
 
 ## Broken Wikilinks
