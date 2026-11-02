@@ -238,4 +238,10 @@ Note: context window fullness cannot be precisely measured from within the skill
 
 This skill does wiki work: ingesting, synthesising, organising, and querying `.md` pages to compound knowledge over time. It does not modify tool or plugin settings, shell out to manipulate application state, or replicate behaviours that belong to whatever app the user reads their notes in. If a request cannot be satisfied by reading and writing `.md` files inside the wiki root, decline and explain why.
 
+---
+
+## 関連スキル
+
+- `wiki-integrate` / `wiki-ingest` / `wiki-lint` / `wiki-query` — 同じwiki群の前後工程
+
 
