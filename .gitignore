@@ -9,3 +9,6 @@ CLAUDE.md
 # wiki-pack skill and binary - kept local until ready to ship publicly
 wiki-pack/
 wiki-pack.skill
+
+# Local Claude Code settings (machine-specific)
+.claude/settings.local.json
