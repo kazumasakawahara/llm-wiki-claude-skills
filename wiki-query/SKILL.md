@@ -1,6 +1,6 @@
 ---
 name: wiki-query
-description: Answer a question using the compiled wiki knowledge base. Reads index.md to identify relevant pages, synthesises an answer with [[wikilink]] citations, and optionally files valuable answers as new wiki pages. Use when you say /wiki-query or when the user wants to draw on accumulated wiki knowledge rather than general model knowledge. Requires filesystem read access.
+description: Answer a question using the compiled wiki knowledge base. Reads index.md to identify relevant pages, synthesises an answer with [[wikilink]] citations, and optionally files valuable answers as new wiki pages. Use when you say /wiki-query, when the user wants to draw on accumulated wiki knowledge rather than general model knowledge, when the user asks for in-depth or cross-cutting information ("深く", "横断的に", "詳しく"), or as a re-search when a first wiki answer was too shallow. Requires filesystem read access.
 ---
 
 <!-- version: 2.7 -->
